@@ -1,7 +1,8 @@
 #include <android_native_app_glue.h>
+#include <math.h>
 #include "raylib.h"
 #include "raymath.h"
-#include <math.h>
+#include "chat.h"
 
 #if defined(PLATFORM_ANDROID)
 #include <jni.h>
@@ -247,10 +248,18 @@ int main(void)
     float jumpRadius = 40;
     int jumpFinger = -1;
 
+    ChatState chat;
+    Chat_Init(&chat);
+
     while (!WindowShouldClose())
     {
         float time = GetTime();
         speed = 0;
+
+        float dt = GetFrameTime();
+        Chat_HandleInput(&chat);
+        Chat_Update(&chat, dt);
+
 
         int touches = GetTouchPointCount();
         for (int i = 0; i < touches; i++)
@@ -334,6 +343,8 @@ int main(void)
         DrawRectangle(-cameraX, GROUND_Y+24, WORLD_WIDTH, 200, DARKBROWN);
         DrawPlayer((Vector2){player.x-cameraX,player.y}, facing, speed, time);
 
+        Chat_DrawBubble(&chat, player, cameraX);
+
         BeginBlendMode(BLEND_MULTIPLIED);
         DrawRectangle(0,0,SCREEN_WIDTH,SCREEN_HEIGHT,Fade(BLACK,ambient));
         EndBlendMode();
@@ -378,6 +389,8 @@ int main(void)
                 25 * joyScale,
                 GRAY
         );
+
+        Chat_DrawButton(&chat);
 
         EndTextureMode();
 

@@ -16,6 +16,7 @@ add_subdirectory(raylib)
 # Your app
 add_library(umg SHARED
         main.c
+        chat.c
         ${ANDROID_NATIVE_APP_GLUE}/android_native_app_glue.c
 )
 
