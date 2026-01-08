@@ -1,4 +1,0 @@
-C:\Projects\UMG-Android\app\src\main\cpp\raylib\src\raylib.h
-C:\Projects\UMG-Android\app\src\main\cpp\raylib\src\rcamera.h
-C:\Projects\UMG-Android\app\src\main\cpp\raylib\src\rlgl.h
-C:\Projects\UMG-Android\app\src\main\cpp\raylib\src\raymath.h
