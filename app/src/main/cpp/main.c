@@ -26,6 +26,17 @@ struct android_app *GetAndroidApp(void);
 #define DAY_AMBIENT    0.40f
 #define NIGHT_AMBIENT  0.75f
 
+
+static inline int GetSafeTouchId(int index)
+{
+#if defined(PLATFORM_ANDROID)
+    int id = GetTouchPointId(index);
+    return (id >= 0) ? id : index;
+#else
+    return index;
+#endif
+}
+
 /* =============================
    ANDROID HAPTIC FEEDBACK
 ============================= */
@@ -33,30 +44,72 @@ struct android_app *GetAndroidApp(void);
 static void TriggerHapticFeedback(int durationMs)
 {
     struct android_app *app = GetAndroidApp();
-    if (!app || !app->activity) return;
+    if (!app || !app->activity || !app->activity->vm) return;
 
     JNIEnv *env = NULL;
     JavaVM *vm = app->activity->vm;
-    (*vm)->AttachCurrentThread(vm, &env, NULL);
+
+    // Attach the current thread to the Java VM.
+    // If the thread is already attached, this will set the JNIEnv pointer.
+    jint result = (*vm)->AttachCurrentThread(vm, &env, NULL);
+    if (result != JNI_OK || env == NULL) {
+        // Log an error if attachment fails.
+        // TRACELOG(LOG_ERROR, "JNI: Failed to attach current thread.");
+        return;
+    }
 
     jobject activity = app->activity->clazz;
-    jclass activityClass = (*env)->GetObjectClass(env, activity);
+    if (!activity) {
+        (*vm)->DetachCurrentThread(vm);
+        return;
+    }
 
+    jclass activityClass = (*env)->GetObjectClass(env, activity);
+    if (!activityClass) {
+        (*vm)->DetachCurrentThread(vm);
+        return;
+    }
+
+    // Get the getSystemService method
     jmethodID getService = (*env)->GetMethodID(
             env,
             activityClass,
             "getSystemService",
             "(Ljava/lang/String;)Ljava/lang/Object;"
     );
+    if (!getService) {
+        (*env)->DeleteLocalRef(env, activityClass);
+        (*vm)->DetachCurrentThread(vm);
+        return;
+    }
 
+    // Get the vibrator service
     jstring vibStr = (*env)->NewStringUTF(env, "vibrator");
     jobject vibrator = (*env)->CallObjectMethod(env, activity, getService, vibStr);
+    (*env)->DeleteLocalRef(env, vibStr); // Clean up the string reference
 
-    jclass vibClass = (*env)->GetObjectClass(env, vibrator);
-    jmethodID vibrate = (*env)->GetMethodID(env, vibClass, "vibrate", "(J)V");
+    if (vibrator)
+    {
+        jclass vibClass = (*env)->GetObjectClass(env, vibrator);
+        if (vibClass) {
+            jmethodID vibrate = (*env)->GetMethodID(env, vibClass, "vibrate", "(J)V");
+            if (vibrate) {
+                (*env)->CallVoidMethod(env, vibrator, vibrate, (jlong)durationMs);
+            }
+            (*env)->DeleteLocalRef(env, vibClass);
+        }
+        (*env)->DeleteLocalRef(env, vibrator);
+    }
 
-    (*env)->CallVoidMethod(env, vibrator, vibrate, (jlong)durationMs);
+    // It's crucial to check for and clear any pending exceptions
+    if ((*env)->ExceptionCheck(env)) {
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
+    }
 
+    (*env)->DeleteLocalRef(env, activityClass);
+
+    // Detach the thread from the VM.
     (*vm)->DetachCurrentThread(vm);
 }
 #endif
@@ -66,8 +119,8 @@ static void TriggerHapticFeedback(int durationMs)
 ============================= */
 Vector2 TouchToGame(Vector2 touch) {
     return (Vector2) {
-        .x = touch.x * (float)SCREEN_WIDTH / GetScreenWidth(),
-        .y = touch.y * (float)SCREEN_HEIGHT / GetScreenHeight()
+            .x = touch.x * (float)SCREEN_WIDTH / GetScreenWidth(),
+            .y = touch.y * (float)SCREEN_HEIGHT / GetScreenHeight()
     };
 }
 
@@ -113,6 +166,10 @@ void DrawPlayer(Vector2 pos, Vector2 dir, float speed, float time)
     Color shirt = GREEN;
     Color pants = DARKGREEN;
     Color skin  = BEIGE;
+
+    /* shadow pass (added, original draw preserved) */
+    DrawLineEx((Vector2){hip.x+3,hip.y+3},
+               (Vector2){ hip.x + facing * 6 + legSwing * facing + 3, hip.y + 25 }, 4, Fade(BLACK,0.25f));
 
     DrawLineEx(hip,
                (Vector2){ hip.x + facing * 6 + legSwing * facing, hip.y + 22 }, 4, pants);
@@ -232,6 +289,33 @@ int main(void)
 
     RenderTexture2D target = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+    /* === ADDED: PROCEDURAL SKY TEXTURE (cached) === */
+    RenderTexture2D skyTex = LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT);
+    BeginTextureMode(skyTex);
+    for (int y = 0; y < SCREEN_HEIGHT; y++)
+    {
+        float ty = (float)y / SCREEN_HEIGHT;
+        Color c = ColorLerp(SKYBLUE, (Color){30,50,120,255}, ty);
+        DrawRectangle(0, y, SCREEN_WIDTH, 1, c);
+    }
+    EndTextureMode();
+
+    /* === ADDED: PROCEDURAL GROUND TEXTURE (cached) === */
+    RenderTexture2D groundTex = LoadRenderTexture(WORLD_WIDTH, 200);
+    BeginTextureMode(groundTex);
+    ClearBackground(DARKBROWN);
+    for (int x = 0; x < WORLD_WIDTH; x += 4)
+    {
+        float n = sinf(x * 0.03f) * 6 + cosf(x * 0.11f) * 3;
+        DrawRectangle(x, 40 + n, 4, 160, Fade(BROWN, 0.75f));
+    }
+    for (int i = 0; i < 400; i++)
+        DrawCircle(GetRandomValue(0, WORLD_WIDTH),
+                   GetRandomValue(80, 180),
+                   GetRandomValue(2, 4),
+                   Fade(DARKGRAY, 0.35f));
+    EndTextureMode();
+
     Vector2 player = {200, GROUND_Y};
     Vector2 facing = {1,0};
     float speed = 0, velY = 0;
@@ -273,54 +357,58 @@ int main(void)
         if (joyHapticCooldown > 0.0f) joyHapticCooldown -= dt;
 
         int touches = GetTouchPointCount();
+
+/* =============================
+   TOUCH PROCESSING (STABLE)
+============================= */
         for (int i = 0; i < touches; i++)
         {
+            int touchId = GetTouchPointId(i);
             Vector2 p = TouchToGame(GetTouchPosition(i));
 
             if (Chat_HandleTouch(&chat, p, i))
-            {
-                continue; 
-            }
+                continue;
 
-            if (joy.finger == -1 &&
+            /* === JOYSTICK CAPTURE === */
+            if (!joy.active &&
                 CheckCollisionPointCircle(p, joy.base, joy.radius))
             {
-                joy.finger = i;
+                joy.finger = touchId;
                 joy.active = true;
             }
 
-            if (i == joy.finger)
+            /* === JOYSTICK MOVE === */
+            if (joy.active && touchId == joy.finger)
             {
                 Vector2 d = Vector2Subtract(p, joy.base);
-                if (Vector2Length(d) > joy.radius) {
+                if (Vector2Length(d) > joy.radius)
                     d = Vector2Scale(Vector2Normalize(d), joy.radius);
-                }
 
                 joy.knob = Vector2Add(joy.base, d);
-
-                // Scale delta to be between -1 and 1
                 joy.delta = Vector2Scale(d, 1.0f / joy.radius);
 
                 speed = fabsf(joy.delta.x);
-                player.x += joy.delta.x * 5.5f; // Simplified movement
+                player.x += joy.delta.x * 5.5f;
 
-                if (fabsf(joy.delta.x) > 0.01f) {
+                if (fabsf(joy.delta.x) > 0.01f)
                     facing.x = joy.delta.x > 0 ? 1.0f : -1.0f;
-                }
 
-                if (speed > 0.1f && joyHapticCooldown <= 0.0f) {
-                    #if defined(PLATFORM_ANDROID)
+                if (speed > 0.1f && joyHapticCooldown <= 0.0f)
+                {
+#if defined(PLATFORM_ANDROID)
                     TriggerHapticFeedback(40);
-                    #endif
+#endif
                     joyHapticCooldown = 1.0f;
                 }
             }
 
+            /* === JUMP BUTTON === */
             if (jumpFinger == -1 &&
+                touchId != joy.finger &&
                 jumpsUsed < MAX_JUMPS &&
                 CheckCollisionPointCircle(p, jumpBtn, jumpRadius))
             {
-                jumpFinger = i;
+                jumpFinger = touchId;
                 velY = JUMP_VELOCITY;
                 grounded = false;
                 jumpsUsed++;
@@ -331,15 +419,45 @@ int main(void)
             }
         }
 
-        if (joy.finger >= touches)
+/* =============================
+   RELEASE CHECKS
+============================= */
+
+/* --- Joystick release --- */
+        bool joyStillDown = false;
+        for (int i = 0; i < touches; i++)
+        {
+            if (GetTouchPointId(i) == joy.finger)
+            {
+                joyStillDown = true;
+                break;
+            }
+        }
+
+        if (joy.active && !joyStillDown)
         {
             joy.finger = -1;
             joy.active = false;
             joy.knob = joy.base;
+            joy.delta = (Vector2){0,0};
         }
 
-        if (jumpFinger >= touches)
+/* --- Jump release --- */
+        bool jumpStillDown = false;
+        for (int i = 0; i < touches; i++)
+        {
+            if (GetTouchPointId(i) == jumpFinger)
+            {
+                jumpStillDown = true;
+                break;
+            }
+        }
+
+        if (!jumpStillDown)
+        {
             jumpFinger = -1;
+        }
+
 
         velY += GRAVITY;
         player.y += velY;
@@ -364,12 +482,23 @@ int main(void)
         UpdateBirds(time);
 
         BeginTextureMode(target);
-        ClearBackground(SKYBLUE);
+
+        /* === ADDED: draw procedural sky BEFORE original clear === */
+        DrawTexture(skyTex.texture, 0, 0, WHITE);
+        ClearBackground(Fade(SKYBLUE,0.35f));
 
         DrawParallax(cameraX);
         DrawBirds(1.0f - t, time);
 
-        DrawRectangle(-cameraX, GROUND_Y+24, WORLD_WIDTH, 200, DARKBROWN);
+        /* === ADDED: procedural ground under original ground === */
+        DrawTextureRec(
+                groundTex.texture,
+                (Rectangle){cameraX,0,SCREEN_WIDTH,200},
+                (Vector2){0,GROUND_Y+24},
+                WHITE
+        );
+
+        DrawRectangle(-cameraX, GROUND_Y+24, WORLD_WIDTH, 200, Fade(DARKBROWN,0.4f));
         DrawPlayer((Vector2){player.x-cameraX,player.y}, facing, speed, time);
 
         Chat_DrawBubble(&chat, player, cameraX);
@@ -433,6 +562,8 @@ int main(void)
         EndDrawing();
     }
 
+    UnloadRenderTexture(skyTex);
+    UnloadRenderTexture(groundTex);
     UnloadRenderTexture(target);
     CloseWindow();
     return 0;
