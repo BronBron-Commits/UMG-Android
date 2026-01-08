@@ -31,6 +31,18 @@ typedef struct {
 } VirtualJoystick;
 
 /* =============================
+   TEXT HELPERS
+============================= */
+void DrawOutlinedText(const char *text, int x, int y, int size, Color textColor, Color outline)
+{
+    DrawText(text, x-1, y,   size, outline);
+    DrawText(text, x+1, y,   size, outline);
+    DrawText(text, x,   y-1, size, outline);
+    DrawText(text, x,   y+1, size, outline);
+    DrawText(text, x,   y,   size, textColor);
+}
+
+/* =============================
    PLAYER
 ============================= */
 void DrawPlayer(Vector2 pos, Vector2 dir, float speed, float time)
@@ -203,7 +215,6 @@ int main(void)
         {
             Vector2 p = GetTouchPosition(i);
 
-            // Joystick
             if (joy.finger == -1 &&
                 CheckCollisionPointCircle(p, joy.base, joy.radius))
             {
@@ -225,7 +236,6 @@ int main(void)
                 facing.x = joy.delta.x >= 0 ? 1 : -1;
             }
 
-            // Jump (double jump)
             if (jumpFinger == -1 &&
                 jumpsUsed < MAX_JUMPS &&
                 CheckCollisionPointCircle(p, jumpBtn, jumpRadius))
@@ -295,7 +305,15 @@ int main(void)
         DrawCircleV(joy.knob, 25, GRAY);
         DrawCircleV(jumpBtn, jumpRadius,
                     jumpsUsed < MAX_JUMPS ? Fade(GREEN,0.6f) : Fade(GRAY,0.4f));
-        DrawText("JUMP", jumpBtn.x-22, jumpBtn.y-8, 16, BLACK);
+
+        DrawOutlinedText(
+                "JUMP",
+                jumpBtn.x - 26,
+                jumpBtn.y - 10,
+                20,
+                BLACK,
+                RAYWHITE
+        );
 
         EndTextureMode();
 
