@@ -292,15 +292,21 @@ int main(void)
             if (i == joy.finger)
             {
                 Vector2 d = Vector2Subtract(p, joy.base);
-                if (Vector2Length(d) > joy.radius)
+                if (Vector2Length(d) > joy.radius) {
                     d = Vector2Scale(Vector2Normalize(d), joy.radius);
+                }
 
-                joy.delta = Vector2Normalize(d);
                 joy.knob = Vector2Add(joy.base, d);
 
+                // Scale delta to be between -1 and 1
+                joy.delta = Vector2Scale(d, 1.0f / joy.radius);
+
                 speed = fabsf(joy.delta.x);
-                player.x += joy.delta.x * speed * 5.5f;
-                facing.x = joy.delta.x >= 0 ? 1 : -1;
+                player.x += joy.delta.x * 5.5f; // Simplified movement
+
+                if (fabsf(joy.delta.x) > 0.01f) {
+                    facing.x = joy.delta.x > 0 ? 1.0f : -1.0f;
+                }
 
                 if (speed > 0.1f && joyHapticCooldown <= 0.0f) {
                     #if defined(PLATFORM_ANDROID)
