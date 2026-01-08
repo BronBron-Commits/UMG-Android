@@ -62,6 +62,16 @@ static void TriggerHapticFeedback(int durationMs)
 #endif
 
 /* =============================
+   COORDINATE TRANSFORMATION
+============================= */
+Vector2 TouchToGame(Vector2 touch) {
+    return (Vector2) {
+        .x = touch.x * (float)SCREEN_WIDTH / GetScreenWidth(),
+        .y = touch.y * (float)SCREEN_HEIGHT / GetScreenHeight()
+    };
+}
+
+/* =============================
    VIRTUAL JOYSTICK
 ============================= */
 typedef struct {
@@ -255,17 +265,21 @@ int main(void)
     {
         float time = GetTime();
         speed = 0;
-
         float dt = GetFrameTime();
-        Chat_HandleInput(&chat);
         Chat_Update(&chat, dt);
-
 
         int touches = GetTouchPointCount();
         for (int i = 0; i < touches; i++)
         {
-            Vector2 p = GetTouchPosition(i);
+            Vector2 p = TouchToGame(GetTouchPosition(i));
 
+            // 1) Give chat FIRST chance to consume touch
+            if (Chat_HandleTouch(&chat, p, i))
+            {
+                continue; // chat used it, skip gameplay input
+            }
+
+            // 2) Gameplay input ONLY if chat didn't take it
             if (joy.finger == -1 &&
                 CheckCollisionPointCircle(p, joy.base, joy.radius))
             {
