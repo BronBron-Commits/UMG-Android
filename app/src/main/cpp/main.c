@@ -301,19 +301,26 @@ int main(void)
                            moonRadius, Fade(RAYWHITE,t), Fade(BLACK,0));
         EndBlendMode();
 
-        DrawCircleV(joy.base, joy.radius, Fade(DARKGRAY,0.5f));
-        DrawCircleV(joy.knob, 25, GRAY);
-        DrawCircleV(jumpBtn, jumpRadius,
-                    jumpsUsed < MAX_JUMPS ? Fade(GREEN,0.6f) : Fade(GRAY,0.4f));
+        float jumpScale = (jumpFinger != -1) ? 1.15f : 1.0f;
+        float drawRadius = jumpRadius * jumpScale;
+
+        DrawCircleV(
+                jumpBtn,
+                drawRadius,
+                jumpsUsed < MAX_JUMPS ? Fade(GREEN,0.6f) : Fade(GRAY,0.4f)
+        );
 
         DrawOutlinedText(
                 "JUMP",
-                jumpBtn.x - 26,
-                jumpBtn.y - 10,
-                20,
+                jumpBtn.x - (int)(26 * jumpScale),
+                jumpBtn.y - (int)(10 * jumpScale),
+                (int)(20 * jumpScale),
                 BLACK,
                 RAYWHITE
         );
+
+        DrawCircleV(joy.base, joy.radius, Fade(DARKGRAY,0.5f));
+        DrawCircleV(joy.knob, 25, GRAY);
 
         EndTextureMode();
 
