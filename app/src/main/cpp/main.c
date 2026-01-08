@@ -26,6 +26,7 @@ typedef struct {
     float radius;
     bool active;
     Vector2 delta;
+    int finger;
 } VirtualJoystick;
 
 /* =============================
@@ -183,49 +184,66 @@ int main(void)
     VirtualJoystick joy = {
             {120,SCREEN_HEIGHT-120},
             {120,SCREEN_HEIGHT-120},
-            60,false,{0,0}
+            60,false,{0,0},-1
     };
 
     Vector2 jumpBtn = {SCREEN_WIDTH-120,SCREEN_HEIGHT-120};
     float jumpRadius = 40;
+    int jumpFinger = -1;
 
     while (!WindowShouldClose())
     {
         float time = GetTime();
-        Vector2 touch = GetMousePosition();
         speed = 0;
 
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
-            CheckCollisionPointCircle(touch, joy.base, joy.radius))
-            joy.active = true;
-
-        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && joy.active)
+        int touches = GetTouchPointCount();
+        for (int i = 0; i < touches; i++)
         {
-            Vector2 d = Vector2Subtract(touch, joy.base);
-            if (Vector2Length(d) > joy.radius)
-                d = Vector2Scale(Vector2Normalize(d), joy.radius);
+            Vector2 p = GetTouchPosition(i);
 
-            joy.delta = Vector2Normalize(d);
-            joy.knob = Vector2Add(joy.base, d);
+            // Joystick
+            if (joy.finger == -1 &&
+                CheckCollisionPointCircle(p, joy.base, joy.radius))
+            {
+                joy.finger = i;
+                joy.active = true;
+            }
 
-            speed = fabsf(joy.delta.x);
-            player.x += joy.delta.x * speed * 5.5f;
-            facing.x = joy.delta.x >= 0 ? 1 : -1;
+            if (i == joy.finger)
+            {
+                Vector2 d = Vector2Subtract(p, joy.base);
+                if (Vector2Length(d) > joy.radius)
+                    d = Vector2Scale(Vector2Normalize(d), joy.radius);
+
+                joy.delta = Vector2Normalize(d);
+                joy.knob = Vector2Add(joy.base, d);
+
+                speed = fabsf(joy.delta.x);
+                player.x += joy.delta.x * speed * 5.5f;
+                facing.x = joy.delta.x >= 0 ? 1 : -1;
+            }
+
+            // Jump
+            if (jumpFinger == -1 &&
+                grounded &&
+                CheckCollisionPointCircle(p, jumpBtn, jumpRadius))
+            {
+                jumpFinger = i;
+                velY = JUMP_VELOCITY;
+                grounded = false;
+            }
         }
 
-        if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
+        // Release handling
+        if (joy.finger >= touches)
         {
+            joy.finger = -1;
             joy.active = false;
             joy.knob = joy.base;
         }
 
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
-            grounded &&
-            CheckCollisionPointCircle(touch, jumpBtn, jumpRadius))
-        {
-            velY = JUMP_VELOCITY;
-            grounded = false;
-        }
+        if (jumpFinger >= touches)
+            jumpFinger = -1;
 
         velY += GRAVITY;
         player.y += velY;
@@ -248,7 +266,6 @@ int main(void)
 
         UpdateBirds(time);
 
-        /* ===== RENDER TO PORTRAIT TARGET ===== */
         BeginTextureMode(target);
         ClearBackground(SKYBLUE);
 
@@ -279,7 +296,6 @@ int main(void)
 
         EndTextureMode();
 
-        /* ===== FINAL SCREEN DRAW ===== */
         BeginDrawing();
         ClearBackground(BLACK);
 
