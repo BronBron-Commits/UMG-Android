@@ -13,6 +13,7 @@
 
 #define GRAVITY        0.6f
 #define JUMP_VELOCITY -12.0f
+#define MAX_JUMPS      2
 
 #define DAY_AMBIENT    0.40f
 #define NIGHT_AMBIENT  0.75f
@@ -170,6 +171,7 @@ int main(void)
     Vector2 facing = {1,0};
     float speed = 0, velY = 0;
     bool grounded = true;
+    int jumpsUsed = 0;
     float cameraX = 0;
 
     float transitionCenter = WORLD_WIDTH * 0.5f;
@@ -223,18 +225,18 @@ int main(void)
                 facing.x = joy.delta.x >= 0 ? 1 : -1;
             }
 
-            // Jump
+            // Jump (double jump)
             if (jumpFinger == -1 &&
-                grounded &&
+                jumpsUsed < MAX_JUMPS &&
                 CheckCollisionPointCircle(p, jumpBtn, jumpRadius))
             {
                 jumpFinger = i;
                 velY = JUMP_VELOCITY;
                 grounded = false;
+                jumpsUsed++;
             }
         }
 
-        // Release handling
         if (joy.finger >= touches)
         {
             joy.finger = -1;
@@ -253,6 +255,7 @@ int main(void)
             player.y = GROUND_Y;
             velY = 0;
             grounded = true;
+            jumpsUsed = 0;
         }
 
         player.x = Clamp(player.x, 0, WORLD_WIDTH);
@@ -291,7 +294,7 @@ int main(void)
         DrawCircleV(joy.base, joy.radius, Fade(DARKGRAY,0.5f));
         DrawCircleV(joy.knob, 25, GRAY);
         DrawCircleV(jumpBtn, jumpRadius,
-                    grounded?Fade(GREEN,0.6f):Fade(GRAY,0.4f));
+                    jumpsUsed < MAX_JUMPS ? Fade(GREEN,0.6f) : Fade(GRAY,0.4f));
         DrawText("JUMP", jumpBtn.x-22, jumpBtn.y-8, 16, BLACK);
 
         EndTextureMode();
