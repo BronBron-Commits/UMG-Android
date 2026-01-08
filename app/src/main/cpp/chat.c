@@ -103,7 +103,6 @@ void Chat_Init(ChatState *chat)
     chat->bubbleTimer = 0.0f;
     chat->text[0] = '\0';
     chat->sentText[0] = '\0';
-    chat->backspaceHoldTimer = 0.0f;
 
     UpdateChatLayout(chat); // Set initial layout
 }
@@ -117,15 +116,14 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
     {
         // Handle Backspace Button Press
-        if (chat->open && CheckCollisionPointRec(touch, chat->backspaceButton))
+        if (chat->open && CheckCollisionPointRec(touch, chat->backspaceButton) && chat->backspaceCooldown <= 0.0f)
         {
             if (chat->length > 0) {
                 chat->length--;
                 chat->text[chat->length] = '\0';
             }
-            chat->backspacePressed = true;
             chat->activeFinger = finger;
-            chat->backspaceHoldTimer = 0.0f;
+            chat->backspaceCooldown = 1.0f;
             return true;
         }
 
@@ -176,12 +174,10 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
         }
     }
 
-    // Handle Backspace Release
+    // Handle Finger Release
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON) && chat->activeFinger == finger)
     {
         chat->activeFinger = -1;
-        chat->backspacePressed = false;
-        chat->backspaceHoldTimer = 0.0f;
     }
 
     return false;
@@ -199,19 +195,9 @@ void Chat_Update(ChatState *chat, float dt)
         }
     }
 
-    if (!chat->open) return;
+    if (chat->backspaceCooldown > 0.0f) chat->backspaceCooldown -= dt;
 
-    // On-screen backspace hold logic
-    if (chat->backspacePressed)
-    {
-        chat->backspaceHoldTimer += dt;
-        if (chat->backspaceHoldTimer > 0.5f) { // Initial delay before rapid delete
-            if (chat->length > 0) {
-                chat->length--;
-                chat->text[chat->length] = '\0';
-            }
-        }
-    }
+    if (!chat->open) return;
 
     // Text Input from soft keyboard
     int key = GetCharPressed();
@@ -225,7 +211,6 @@ void Chat_Update(ChatState *chat, float dt)
         key = GetCharPressed();
     }
 
-    // Fallback for keyboards that use key codes
 #if defined(PLATFORM_ANDROID)
     int pKey = GetKeyPressed();
     while (pKey > 0)
@@ -266,9 +251,9 @@ void Chat_DrawUI(ChatState *chat)
     if (chat->open)
     {
         // Draw Backspace Button
-        DrawRectangleRec(chat->backspaceButton, chat->backspacePressed ? MAROON : RED);
+        DrawRectangleRec(chat->backspaceButton, RED);
         DrawRectangleLinesEx(chat->backspaceButton, 2, BLACK);
-        DrawText("<-", (int)chat->backspaceButton.x + 15, (int)chat->backspaceButton.y + 14, 14, WHITE);
+        DrawText("<-<caret>", (int)chat->backspaceButton.x + 15, (int)chat->backspaceButton.y + 14, 14, WHITE);
 
         DrawText(TextFormat("%i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)chat->inputBox.x, (int)chat->inputBox.y - 15, 10, DARKGRAY);
 

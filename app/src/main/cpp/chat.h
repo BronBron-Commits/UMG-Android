@@ -30,8 +30,7 @@ typedef struct ChatState {
     int activeFinger;
     float bubbleTimer;
     
-    bool backspacePressed;
-    float backspaceHoldTimer; // Timer for continuous delete
+    float backspaceCooldown; // Cooldown timer for the backspace button
 } ChatState;
 
 void Chat_Init(ChatState *chat);
