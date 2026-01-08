@@ -130,6 +130,7 @@ void Chat_Update(ChatState *chat, float dt)
 {
     if (!chat->open) return;
 
+    // Standard Char processing
     int key = GetCharPressed();
     while (key > 0)
     {
@@ -141,6 +142,26 @@ void Chat_Update(ChatState *chat, float dt)
         }
         key = GetCharPressed();
     }
+
+#if defined(PLATFORM_ANDROID)
+    // Android fallback: Map keys to characters because GetCharPressed() might return nothing
+    int pKey = GetKeyPressed();
+    while (pKey > 0)
+    {
+        char c = 0;
+        if (pKey >= KEY_A && pKey <= KEY_Z) c = 'a' + (pKey - KEY_A);
+        else if (pKey >= KEY_ZERO && pKey <= KEY_NINE) c = '0' + (pKey - KEY_ZERO);
+        else if (pKey == KEY_SPACE) c = ' ';
+        
+        if (c != 0 && chat->length < CHAT_MAX_TEXT - 1)
+        {
+            chat->text[chat->length++] = c;
+            chat->text[chat->length] = '\0';
+            chat->bubbleTimer = 5.0f;
+        }
+        pKey = GetKeyPressed();
+    }
+#endif
 
     if (IsKeyPressed(KEY_BACKSPACE) && chat->length > 0)
     {
