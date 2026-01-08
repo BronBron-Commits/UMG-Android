@@ -404,8 +404,6 @@ int main(void)
                 GRAY
         );
 
-        Chat_DrawUI(&chat);
-
         EndTextureMode();
 
         BeginDrawing();
@@ -414,6 +412,8 @@ int main(void)
         Rectangle src = {0,0,SCREEN_WIDTH,-SCREEN_HEIGHT};
         Rectangle dst = {0,0,GetScreenWidth(),GetScreenHeight()};
         DrawTexturePro(target.texture, src, dst, (Vector2){0,0}, 0, WHITE);
+
+        Chat_DrawUI(&chat);
 
         EndDrawing();
     }

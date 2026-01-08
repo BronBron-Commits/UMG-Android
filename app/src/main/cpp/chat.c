@@ -81,28 +81,6 @@ static void HideKeyboard(void) {}
 void Chat_Init(ChatState *chat)
 {
     memset(chat, 0, sizeof(ChatState));
-    
-    int inputHeight = 44;
-    int padding = 10;
-    int sendWidth = 70;
-    int bottomY = SCREEN_HEIGHT - inputHeight - padding;
-    
-    int availableWidth = SCREEN_WIDTH - (padding * 2);
-    int inputWidth = availableWidth - sendWidth - padding;
-    
-    chat->inputBox = (Rectangle){ 
-        (float)padding, 
-        (float)bottomY, 
-        (float)inputWidth, 
-        (float)inputHeight 
-    };
-
-    chat->sendButton = (Rectangle){
-        chat->inputBox.x + chat->inputBox.width + padding,
-        (float)bottomY,
-        (float)sendWidth,
-        (float)inputHeight
-    };
 
     chat->open = false;
     chat->length = 0;
@@ -116,40 +94,69 @@ void Chat_Init(ChatState *chat)
 
 bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
 {
+    Rectangle inputBox, sendButton;
+    
+    int inputHeight = 44;
+    int padding = 10;
+    int sendWidth = 70;
+    int bottomY = chat->open ? (SCREEN_HEIGHT / 2 - inputHeight - padding) : (SCREEN_HEIGHT - inputHeight - padding);
+    
+    int availableWidth = SCREEN_WIDTH - (padding * 2);
+    int inputWidth = availableWidth - sendWidth - padding;
+    
+    inputBox = (Rectangle){(float)padding, (float)bottomY, (float)inputWidth, (float)inputHeight };
+    sendButton = (Rectangle){ inputBox.x + inputBox.width + padding, (float)bottomY, (float)sendWidth, (float)inputHeight };
+
     // If a finger is already interacting with the chat UI, only listen to that finger.
     if (chat->activeFinger != -1 && chat->activeFinger != finger) return false;
 
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(touch, chat->sendButton))
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
     {
-        if (chat->open) // "SEND" button pressed
+        if (CheckCollisionPointRec(touch, sendButton))
         {
-            if (chat->length > 0)
+            if (chat->open) // "SEND" button pressed
             {
-                strcpy(chat->sentText, chat->text);
-                chat->sentLength = chat->length;
-                chat->bubbleTimer = 5.0f;
+                if (chat->length > 0)
+                {
+                    strcpy(chat->sentText, chat->text);
+                    chat->sentLength = chat->length;
+                    chat->bubbleTimer = 5.0f;
+                    
+                    chat->text[0] = '\0';
+                    chat->length = 0;
+                }
                 
-                chat->text[0] = '\0';
-                chat->length = 0;
+                chat->open = false;
+                HideKeyboard();
+                chat->activeFinger = -1;
+
+            } else { // "CHAT" button pressed
+                chat->open = true;
+                ShowKeyboard();
+                chat->activeFinger = finger;
             }
-            
-            chat->open = false;
-            HideKeyboard();
-            chat->activeFinger = -1;
-
-        } else { // "CHAT" button pressed
-            chat->open = true;
-            ShowKeyboard();
-            chat->activeFinger = finger;
+            return true;
         }
-        return true;
-    }
 
-    if (chat->open && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(touch, chat->inputBox))
-    {
-        ShowKeyboard(); 
-        chat->activeFinger = finger;
-        return true; // Consumed touch
+        if (CheckCollisionPointRec(touch, inputBox))
+        {
+            if (!chat->open)
+            {
+                chat->open = true;
+                ShowKeyboard();
+            }
+            chat->activeFinger = finger;
+            return true; // Consumed touch
+        }
+        
+        // Tap-away to close
+        if (chat->open)
+        {
+             chat->open = false;
+             HideKeyboard();
+             chat->activeFinger = -1;
+             return true; // Consumed touch
+        }
     }
     
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON) && chat->activeFinger == finger)
@@ -224,28 +231,41 @@ void Chat_Update(ChatState *chat, float dt)
 
 void Chat_DrawUI(ChatState *chat)
 {
+    Rectangle inputBox, sendButton;
+    
+    int inputHeight = 44;
+    int padding = 10;
+    int sendWidth = 70;
+    int bottomY = chat->open ? (SCREEN_HEIGHT / 2 - inputHeight - padding) : (SCREEN_HEIGHT - inputHeight - padding);
+    
+    int availableWidth = SCREEN_WIDTH - (padding * 2);
+    int inputWidth = availableWidth - sendWidth - padding;
+    
+    inputBox = (Rectangle){(float)padding, (float)bottomY, (float)inputWidth, (float)inputHeight };
+    sendButton = (Rectangle){ inputBox.x + inputBox.width + padding, (float)bottomY, (float)sendWidth, (float)inputHeight };
+    
     // Draw Input Box
-    DrawRectangleRec(chat->inputBox, WHITE);
-    DrawRectangleLinesEx(chat->inputBox, 2, BLACK);
-    DrawText(chat->text, (int)chat->inputBox.x + 5, (int)chat->inputBox.y + 12, 20, BLACK);
+    DrawRectangleRec(inputBox, WHITE);
+    DrawRectangleLinesEx(inputBox, 2, BLACK);
+    DrawText(chat->text, (int)inputBox.x + 5, (int)inputBox.y + 12, 20, BLACK);
     
     // Draw Send/Chat Button
     const char *buttonText = chat->open ? "SEND" : "CHAT";
     Color buttonColor = chat->open ? GREEN : DARKBLUE;
-    DrawRectangleRec(chat->sendButton, buttonColor);
-    DrawRectangleLinesEx(chat->sendButton, 2, BLACK);
-    DrawText(buttonText, (int)chat->sendButton.x + 12, (int)chat->sendButton.y + 14, 14, BLACK);
+    DrawRectangleRec(sendButton, buttonColor);
+    DrawRectangleLinesEx(sendButton, 2, BLACK);
+    DrawText(buttonText, (int)sendButton.x + 12, (int)sendButton.y + 14, 14, BLACK);
 
     if (chat->open)
     {
         // Character count above input
-        DrawText(TextFormat("%i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)chat->inputBox.x, (int)chat->inputBox.y - 12, 10, LIGHTGRAY);
+        DrawText(TextFormat("%i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)inputBox.x, (int)inputBox.y - 12, 10, LIGHTGRAY);
 
         // Draw blinking cursor
         if (((int)(GetTime()*2.0f))%2 == 0)
         {
             int textWidth = MeasureText(chat->text, 20);
-            DrawRectangle((int)chat->inputBox.x + 5 + textWidth, (int)chat->inputBox.y + 12, 2, 20, BLACK);
+            DrawRectangle((int)inputBox.x + 5 + textWidth, (int)inputBox.y + 12, 2, 20, BLACK);
         }
     }
 }
