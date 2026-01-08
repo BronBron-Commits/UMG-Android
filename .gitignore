@@ -21,3 +21,4 @@ Thumbs.db
 # APK / AAB
 *.apk
 *.aab
+app/build/ 
