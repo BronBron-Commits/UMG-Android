@@ -19,8 +19,13 @@ typedef struct ChatState {
     bool open;
     Rectangle button;
     Rectangle inputBox;
-    char text[CHAT_MAX_TEXT];
+    
+    char text[CHAT_MAX_TEXT];    // Current typing text
     int length;
+    
+    char sentText[CHAT_MAX_TEXT]; // Text to display in bubble
+    int sentLength;
+    
     int activeFinger;
     float bubbleTimer;
 } ChatState;

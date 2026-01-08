@@ -90,6 +90,9 @@ void Chat_Init(ChatState *chat)
     chat->activeFinger = -1;
     chat->bubbleTimer = 0.0f;
     chat->text[0] = '\0';
+    
+    chat->sentLength = 0;
+    chat->sentText[0] = '\0';
 }
 
 bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
@@ -128,7 +131,20 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
 
 void Chat_Update(ChatState *chat, float dt)
 {
-    if (!chat->open) return;
+    if (!chat->open)
+    {
+        // Still update timer if chat is closed but message is showing
+        if (chat->bubbleTimer > 0.0f)
+        {
+            chat->bubbleTimer -= dt;
+            if (chat->bubbleTimer <= 0.0f)
+            {
+                chat->sentText[0] = '\0';
+                chat->sentLength = 0;
+            }
+        }
+        return;
+    }
 
     // Standard Char processing
     int key = GetCharPressed();
@@ -138,26 +154,23 @@ void Chat_Update(ChatState *chat, float dt)
         {
             chat->text[chat->length++] = (char)key;
             chat->text[chat->length] = '\0';
-            chat->bubbleTimer = 5.0f;
         }
         key = GetCharPressed();
     }
 
 #if defined(PLATFORM_ANDROID)
-    // Android fallback: Map keys to characters because GetCharPressed() might return nothing
     int pKey = GetKeyPressed();
-    while (pKey > 0)
+    while(pKey > 0)
     {
         char c = 0;
-        if (pKey >= KEY_A && pKey <= KEY_Z) c = 'a' + (pKey - KEY_A);
-        else if (pKey >= KEY_ZERO && pKey <= KEY_NINE) c = '0' + (pKey - KEY_ZERO);
+        if(pKey >= KEY_A && pKey <= KEY_Z) c = 'a' + (pKey - KEY_A);
+        else if (pKey >= KEY_ZERO && pKey <= KEY_NINE) c = '0' + (pKey-KEY_ZERO);
         else if (pKey == KEY_SPACE) c = ' ';
-        
+
         if (c != 0 && chat->length < CHAT_MAX_TEXT - 1)
         {
             chat->text[chat->length++] = c;
             chat->text[chat->length] = '\0';
-            chat->bubbleTimer = 5.0f;
         }
         pKey = GetKeyPressed();
     }
@@ -171,18 +184,31 @@ void Chat_Update(ChatState *chat, float dt)
 
     if (IsKeyPressed(KEY_ENTER))
     {
+        // Send message
+        if (chat->length > 0)
+        {
+            strcpy(chat->sentText, chat->text);
+            chat->sentLength = chat->length;
+            chat->bubbleTimer = 5.0f;
+            
+            // Clear input
+            chat->text[0] = '\0';
+            chat->length = 0;
+        }
+        
         chat->open = false;
         chat->activeFinger = -1;
         HideKeyboard();
     }
-
+    
+    // Also update bubble timer if open (so it doesn't expire while typing if previously set)
     if (chat->bubbleTimer > 0.0f)
     {
         chat->bubbleTimer -= dt;
         if (chat->bubbleTimer <= 0.0f)
         {
-            chat->text[0] = '\0';
-            chat->length = 0;
+            chat->sentText[0] = '\0';
+            chat->sentLength = 0;
         }
     }
 }
@@ -202,16 +228,23 @@ void Chat_DrawButton(ChatState *chat)
         DrawRectangleLinesEx(chat->inputBox, 1, BLACK);
         DrawText(chat->text, (int)chat->inputBox.x + 5, (int)chat->inputBox.y + 8, 20, BLACK);
         DrawText(TextFormat("Chars: %i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)chat->inputBox.x, (int)chat->inputBox.y + 50, 10, DARKGRAY);
+
+        // Draw blinking cursor
+        if (((int)(GetTime()*2.0f))%2 == 0)
+        {
+            int textWidth = MeasureText(chat->text, 20);
+            DrawRectangle((int)chat->inputBox.x + 5 + textWidth, (int)chat->inputBox.y + 8, 2, 20, BLACK);
+        }
     }
 }
 
 void Chat_DrawBubble(ChatState *chat, Vector2 playerPos, float cameraX)
 {
-    if (chat->length == 0 || chat->bubbleTimer <= 0.0f) return;
+    if (chat->sentLength == 0 || chat->bubbleTimer <= 0.0f) return;
 
     int padding = 8;
     int fontSize = 18;
-    int textWidth = MeasureText(chat->text, fontSize);
+    int textWidth = MeasureText(chat->sentText, fontSize);
 
     Rectangle bubble = {
             playerPos.x - cameraX - textWidth / 2 - padding,
@@ -223,7 +256,7 @@ void Chat_DrawBubble(ChatState *chat, Vector2 playerPos, float cameraX)
     DrawRectangleRounded(bubble, 0.4f, 8, Fade(RAYWHITE, 0.95f));
     DrawRectangleRoundedLinesEx(bubble, 0.4f, 8, 2.0f, BLACK);
 
-    DrawText(chat->text,
+    DrawText(chat->sentText,
              (int)(bubble.x + padding),
              (int)(bubble.y + padding),
              fontSize,
