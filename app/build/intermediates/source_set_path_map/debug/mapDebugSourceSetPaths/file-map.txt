@@ -1,0 +1,8 @@
+com.bronson.umg.app-pngs-0 C:\Projects\UMG-Android\app\build\generated\res\pngs\debug
+com.bronson.umg.app-resValues-1 C:\Projects\UMG-Android\app\build\generated\res\resValues\debug
+com.bronson.umg.app-updated_navigation_xml-2 C:\Projects\UMG-Android\app\build\generated\updated_navigation_xml\debug
+com.bronson.umg.app-packageDebugResources-3 C:\Projects\UMG-Android\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.bronson.umg.app-packageDebugResources-4 C:\Projects\UMG-Android\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.bronson.umg.app-debug-5 C:\Projects\UMG-Android\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.bronson.umg.app-debug-6 C:\Projects\UMG-Android\app\src\debug\res
+com.bronson.umg.app-main-7 C:\Projects\UMG-Android\app\src\main\res

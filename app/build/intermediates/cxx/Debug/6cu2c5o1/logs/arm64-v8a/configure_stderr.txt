@@ -1,0 +1,120 @@
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Users/Bronson/AppData/Local/Android/Sdk/cmake/4.1.2/share/cmake-4.1/Modules/CMakeDetermineSystem.cmake:146 (include)
+  CMakeLists.txt:2 (project)
+
+
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android-legacy.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:54 (include)
+  C:/Users/Bronson/AppData/Local/Android/Sdk/cmake/4.1.2/share/cmake-4.1/Modules/CMakeDetermineSystem.cmake:146 (include)
+  CMakeLists.txt:2 (project)
+
+
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/4.1.2/CMakeSystem.cmake:6 (include)
+  CMakeLists.txt:2 (project)
+
+
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/4.1.2/CMakeSystem.cmake:6 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/CMakeScratch/TryCompile-q2q6pa/CMakeLists.txt:2 (project)
+
+
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android-legacy.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:54 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/4.1.2/CMakeSystem.cmake:6 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/CMakeScratch/TryCompile-q2q6pa/CMakeLists.txt:2 (project)
+
+
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/4.1.2/CMakeSystem.cmake:6 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/CMakeScratch/TryCompile-shojb0/CMakeLists.txt:2 (project)
+
+
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android-legacy.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:54 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/4.1.2/CMakeSystem.cmake:6 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/CMakeScratch/TryCompile-shojb0/CMakeLists.txt:2 (project)
+
+
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/4.1.2/CMakeSystem.cmake:6 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/CMakeScratch/TryCompile-ezr29c/CMakeLists.txt:3 (project)
+
+
+CMake Deprecation Warning at C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android-legacy.toolchain.cmake:34 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  C:/Users/Bronson/AppData/Local/Android/Sdk/ndk/25.2.9519653/build/cmake/android.toolchain.cmake:54 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/4.1.2/CMakeSystem.cmake:6 (include)
+  C:/Projects/UMG-Android/app/.cxx/Debug/6cu2c5o1/arm64-v8a/CMakeFiles/CMakeScratch/TryCompile-ezr29c/CMakeLists.txt:3 (project)
+
+
+CMake Error at raylib/cmake/EnumOption.cmake:7 (message):
+  Unknown value PLATFORM_ANDROID.  Only
+  -DPLATFORM=Desktop;Web;Android;Raspberry Pi;DRM;SDL;RGFW allowed.
+Call Stack (most recent call first):
+  raylib/CMakeOptions.txt:9 (enum_option)
+  raylib/CMakeLists.txt:30 (include)
+
+

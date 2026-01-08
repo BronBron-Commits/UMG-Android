@@ -1,0 +1,18 @@
+-- Testing if -Werror=pointer-arith can be used -- compiles
+-- Testing if -Werror=implicit-function-declaration can be used -- compiles
+-- Testing if -fno-strict-aliasing can be used -- compiles
+-- Testing if -ffunction-sections can be used -- compiles
+-- Testing if -funwind-tables can be used -- compiles
+-- Testing if -fstack-protector-strong can be used -- compiles
+-- Testing if -Wa,--noexecstack can be used -- compiles
+-- Testing if -no-canonical-prefixes can be used -- compiles
+-- Using external GLFW
+-- Audio Backend: miniaudio
+-- Building raylib static library
+-- Generated build type: Debug
+-- Compiling with the flags:
+--   PLATFORM=PLATFORM_ANDROID
+--   GRAPHICS=GRAPHICS_API_OPENGL_ES2
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: C:/Projects/UMG-Android/app/.cxx/Debug/5v3m6w1s/arm64-v8a

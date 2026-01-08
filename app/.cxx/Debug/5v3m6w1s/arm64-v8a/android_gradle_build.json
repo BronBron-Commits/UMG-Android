@@ -1,0 +1,60 @@
+{
+  "buildFiles": [
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\CMakeLists.txt",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\AddIfFlagCompiles.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\CompileDefinitions.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\CompilerFlags.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\EnumOption.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\GlfwImport.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\InstallConfigurations.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\JoinPaths.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\LibraryConfigurations.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\LibraryPathToLinkerFlags.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\PackConfigurations.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\ParseConfigHeader.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\PopulateConfigVariablesLocally.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\raylib-config-version.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\cmake\\raylib-config.cmake",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\CMakeLists.txt",
+    "C:\\Projects\\UMG-Android\\app\\src\\main\\cpp\\raylib\\src\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\Bronson\\AppData\\Local\\Android\\Sdk\\cmake\\4.1.2\\bin\\ninja.exe",
+      "-C",
+      "C:\\Projects\\UMG-Android\\app\\.cxx\\Debug\\5v3m6w1s\\arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\Bronson\\AppData\\Local\\Android\\Sdk\\cmake\\4.1.2\\bin\\ninja.exe",
+    "-C",
+    "C:\\Projects\\UMG-Android\\app\\.cxx\\Debug\\5v3m6w1s\\arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "raylib::@7d429ebd5d102775094d": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "raylib",
+      "output": "C:\\Projects\\UMG-Android\\app\\.cxx\\Debug\\5v3m6w1s\\arm64-v8a\\raylib\\raylib\\libraylib.a"
+    },
+    "umg::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "umg",
+      "output": "C:\\Projects\\UMG-Android\\app\\build\\intermediates\\cxx\\Debug\\5v3m6w1s\\obj\\arm64-v8a\\libumg.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "C:\\Users\\Bronson\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe",
+      "cppCompilerExecutable": "C:\\Users\\Bronson\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    }
+  },
+  "cFileExtensions": [
+    "c"
+  ],
+  "cppFileExtensions": []
+}

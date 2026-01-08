@@ -1,0 +1,57 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.bronson.umg" >
+4
+5    <uses-sdk
+6        android:minSdkVersion="24"
+7        android:targetSdkVersion="34" />
+8
+9    <uses-feature
+9-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:5:5-7:35
+10        android:glEsVersion="0x00020000"
+10-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:6:9-41
+11        android:required="true" />
+11-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:7:9-32
+12
+13    <application
+13-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:9:5-31:19
+14        android:debuggable="true"
+15        android:extractNativeLibs="false"
+16        android:hasCode="false"
+16-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:11:9-32
+17        android:label="UMG"
+17-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:10:9-28
+18        android:testOnly="true"
+19        android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+19-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:12:9-67
+20        <activity
+20-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:14:9-29:20
+21            android:name="android.app.NativeActivity"
+21-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:15:13-54
+22            android:configChanges="orientation|keyboardHidden|screenSize"
+22-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:18:13-74
+23            android:exported="true"
+23-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:16:13-36
+24            android:screenOrientation="portrait" >
+24-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:17:13-49
+25            <meta-data
+25-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:20:13-22:39
+26                android:name="android.app.lib_name"
+26-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:21:17-52
+27                android:value="umg" />
+27-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:22:17-36
+28
+29            <intent-filter>
+29-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:24:13-27:29
+30                <action android:name="android.intent.action.MAIN" />
+30-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:25:17-69
+30-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:25:25-66
+31
+32                <category android:name="android.intent.category.LAUNCHER" />
+32-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:26:17-77
+32-->C:\Projects\UMG-Android\app\src\main\AndroidManifest.xml:26:27-74
+33            </intent-filter>
+34        </activity>
+35    </application>
+36
+37</manifest>
