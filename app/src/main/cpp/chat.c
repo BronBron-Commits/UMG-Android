@@ -85,21 +85,31 @@ void Chat_Init(ChatState *chat)
     // Chat open button top-left
     chat->button = (Rectangle){ 20, 20, 80, 48 };
     
-    // Input box centered at the bottom
-    int inputWidth = SCREEN_WIDTH - 120;
+    // Position chat bar at the very bottom of the screen, below the joystick/jump buttons.
+    // Joystick Y ~ 680 (radius 60) -> bottom ~ 740.
+    // Jump Y ~ 680 (radius 40) -> bottom ~ 720.
+    // Screen Height = 800.
+    
+    int inputHeight = 44;
+    int padding = 10;
+    int sendWidth = 70;
+    int bottomY = SCREEN_HEIGHT - inputHeight - padding; // 800 - 44 - 10 = 746
+    
+    int availableWidth = SCREEN_WIDTH - (padding * 2); // 480 - 20 = 460
+    int inputWidth = availableWidth - sendWidth - padding; // 460 - 70 - 10 = 380
+    
     chat->inputBox = (Rectangle){ 
-        (SCREEN_WIDTH - inputWidth) / 2 - 30, // Shifted slightly left to make room for send button
-        SCREEN_HEIGHT - 350, // Move it up significantly to avoid keyboard overlap
-        inputWidth, 
-        44 
+        (float)padding, 
+        (float)bottomY, 
+        (float)inputWidth, 
+        (float)inputHeight 
     };
 
-    // Send button to the right of input box
     chat->sendButton = (Rectangle){
-        chat->inputBox.x + chat->inputBox.width + 10,
-        chat->inputBox.y,
-        60,
-        44
+        chat->inputBox.x + chat->inputBox.width + padding,
+        (float)bottomY,
+        (float)sendWidth,
+        (float)inputHeight
     };
 
     chat->open = false;
@@ -272,10 +282,10 @@ void Chat_DrawButton(ChatState *chat)
         // Draw Send Button
         DrawRectangleRec(chat->sendButton, GREEN);
         DrawRectangleLinesEx(chat->sendButton, 2, BLACK);
-        DrawText("SEND", (int)chat->sendButton.x + 8, (int)chat->sendButton.y + 14, 14, BLACK);
+        DrawText("SEND", (int)chat->sendButton.x + 12, (int)chat->sendButton.y + 14, 14, BLACK);
 
-        // Character count below input
-        DrawText(TextFormat("%i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)chat->inputBox.x, (int)chat->inputBox.y + 50, 10, LIGHTGRAY);
+        // Character count above input (moved from below to avoid screen edge)
+        DrawText(TextFormat("%i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)chat->inputBox.x, (int)chat->inputBox.y - 12, 10, LIGHTGRAY);
 
         // Draw blinking cursor
         if (((int)(GetTime()*2.0f))%2 == 0)
