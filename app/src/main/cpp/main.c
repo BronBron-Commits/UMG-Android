@@ -404,7 +404,7 @@ int main(void)
                 GRAY
         );
 
-        Chat_DrawButton(&chat);
+        Chat_DrawUI(&chat);
 
         EndTextureMode();
 
