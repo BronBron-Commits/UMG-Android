@@ -19,6 +19,7 @@ typedef struct ChatState {
     bool open; // Flag to indicate if the chat input is active (keyboard is open)
     Rectangle inputBox;
     Rectangle sendButton;
+    Rectangle backspaceButton; 
     
     char text[CHAT_MAX_TEXT];    // Current typing text
     int length;
@@ -28,15 +29,16 @@ typedef struct ChatState {
     
     int activeFinger;
     float bubbleTimer;
+    
+    bool backspacePressed;
+    float backspaceHoldTimer; // Timer for continuous delete
 } ChatState;
 
 void Chat_Init(ChatState *chat);
 void Chat_Update(ChatState *chat, float dt);
 
-// Returns true if the touch was consumed by chat
 bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger);
 
-// Renamed from Chat_DrawButton to reflect its new purpose
 void Chat_DrawUI(ChatState *chat);
 
 void Chat_DrawBubble(ChatState *chat, Vector2 playerPos, float cameraX);

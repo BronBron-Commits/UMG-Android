@@ -78,41 +78,59 @@ static void ShowKeyboard(void) {}
 static void HideKeyboard(void) {}
 #endif
 
+// Helper to calculate UI layout based on state
+static void UpdateChatLayout(ChatState *chat) {
+    int inputHeight = 44;
+    int padding = 10;
+    int sendWidth = 70;
+    int backspaceWidth = 50;
+    int bottomY = chat->open ? (SCREEN_HEIGHT / 2 - inputHeight - padding) : (SCREEN_HEIGHT - inputHeight - padding);
+    
+    int availableWidth = SCREEN_WIDTH - (padding * 3);
+    int inputWidth = availableWidth - sendWidth - backspaceWidth;
+    
+    chat->inputBox = (Rectangle){(float)padding, (float)bottomY, (float)inputWidth, (float)inputHeight };
+    chat->sendButton = (Rectangle){ chat->inputBox.x + chat->inputBox.width + padding, (float)bottomY, (float)sendWidth, (float)inputHeight };
+    chat->backspaceButton = (Rectangle){ chat->sendButton.x + chat->sendButton.width + padding, (float)bottomY, (float)backspaceWidth, (float)inputHeight };
+}
+
 void Chat_Init(ChatState *chat)
 {
     memset(chat, 0, sizeof(ChatState));
-
     chat->open = false;
     chat->length = 0;
     chat->activeFinger = -1;
     chat->bubbleTimer = 0.0f;
     chat->text[0] = '\0';
-    
-    chat->sentLength = 0;
     chat->sentText[0] = '\0';
+    chat->backspaceHoldTimer = 0.0f;
+
+    UpdateChatLayout(chat); // Set initial layout
 }
 
 bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
 {
-    Rectangle inputBox, sendButton;
-    
-    int inputHeight = 44;
-    int padding = 10;
-    int sendWidth = 70;
-    int bottomY = chat->open ? (SCREEN_HEIGHT / 2 - inputHeight - padding) : (SCREEN_HEIGHT - inputHeight - padding);
-    
-    int availableWidth = SCREEN_WIDTH - (padding * 2);
-    int inputWidth = availableWidth - sendWidth - padding;
-    
-    inputBox = (Rectangle){(float)padding, (float)bottomY, (float)inputWidth, (float)inputHeight };
-    sendButton = (Rectangle){ inputBox.x + inputBox.width + padding, (float)bottomY, (float)sendWidth, (float)inputHeight };
+    UpdateChatLayout(chat); // Ensure layout is up-to-date before handling touch
 
-    // If a finger is already interacting with the chat UI, only listen to that finger.
     if (chat->activeFinger != -1 && chat->activeFinger != finger) return false;
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
     {
-        if (CheckCollisionPointRec(touch, sendButton))
+        // Handle Backspace Button Press
+        if (chat->open && CheckCollisionPointRec(touch, chat->backspaceButton))
+        {
+            if (chat->length > 0) {
+                chat->length--;
+                chat->text[chat->length] = '\0';
+            }
+            chat->backspacePressed = true;
+            chat->activeFinger = finger;
+            chat->backspaceHoldTimer = 0.0f;
+            return true;
+        }
+
+        // Handle Send/Chat Button Press
+        if (CheckCollisionPointRec(touch, chat->sendButton))
         {
             if (chat->open) // "SEND" button pressed
             {
@@ -125,11 +143,9 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
                     chat->text[0] = '\0';
                     chat->length = 0;
                 }
-                
                 chat->open = false;
                 HideKeyboard();
                 chat->activeFinger = -1;
-
             } else { // "CHAT" button pressed
                 chat->open = true;
                 ShowKeyboard();
@@ -138,7 +154,8 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
             return true;
         }
 
-        if (CheckCollisionPointRec(touch, inputBox))
+        // Handle Input Box Press
+        if (CheckCollisionPointRec(touch, chat->inputBox))
         {
             if (!chat->open)
             {
@@ -146,7 +163,7 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
                 ShowKeyboard();
             }
             chat->activeFinger = finger;
-            return true; // Consumed touch
+            return true;
         }
         
         // Tap-away to close
@@ -155,13 +172,16 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
              chat->open = false;
              HideKeyboard();
              chat->activeFinger = -1;
-             return true; // Consumed touch
+             return true;
         }
     }
-    
+
+    // Handle Backspace Release
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON) && chat->activeFinger == finger)
     {
         chat->activeFinger = -1;
+        chat->backspacePressed = false;
+        chat->backspaceHoldTimer = 0.0f;
     }
 
     return false;
@@ -169,55 +189,6 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
 
 void Chat_Update(ChatState *chat, float dt)
 {
-    if (!chat->open)
-    {
-        if (chat->bubbleTimer > 0.0f)
-        {
-            chat->bubbleTimer -= dt;
-            if (chat->bubbleTimer <= 0.0f)
-            {
-                chat->sentText[0] = '\0';
-                chat->sentLength = 0;
-            }
-        }
-        return;
-    }
-
-    int key = GetCharPressed();
-    while (key > 0)
-    {
-        if (chat->length < CHAT_MAX_TEXT - 1 && key >= 32 && key <= 125)
-        {
-            chat->text[chat->length++] = (char)key;
-            chat->text[chat->length] = '\0';
-        }
-        key = GetCharPressed();
-    }
-
-#if defined(PLATFORM_ANDROID)
-    int pKey = GetKeyPressed();
-    while(pKey > 0)
-    {
-        char c = 0;
-        if(pKey >= KEY_A && pKey <= KEY_Z) c = 'a' + (pKey - KEY_A);
-        else if (pKey >= KEY_ZERO && pKey <= KEY_NINE) c = '0' + (pKey-KEY_ZERO);
-        else if (pKey == KEY_SPACE) c = ' ';
-
-        if (c != 0 && chat->length < CHAT_MAX_TEXT - 1)
-        {
-            chat->text[chat->length++] = c;
-            chat->text[chat->length] = '\0';
-        }
-        pKey = GetKeyPressed();
-    }
-#endif
-
-    if (IsKeyPressed(KEY_BACKSPACE) && chat->length > 0)
-    {
-        chat->length--;
-        chat->text[chat->length] = '\0';
-    }
-    
     if (chat->bubbleTimer > 0.0f)
     {
         chat->bubbleTimer -= dt;
@@ -227,45 +198,84 @@ void Chat_Update(ChatState *chat, float dt)
             chat->sentLength = 0;
         }
     }
+
+    if (!chat->open) return;
+
+    // On-screen backspace hold logic
+    if (chat->backspacePressed)
+    {
+        chat->backspaceHoldTimer += dt;
+        if (chat->backspaceHoldTimer > 0.5f) { // Initial delay before rapid delete
+            if (chat->length > 0) {
+                chat->length--;
+                chat->text[chat->length] = '\0';
+            }
+        }
+    }
+
+    // Text Input from soft keyboard
+    int key = GetCharPressed();
+    while (key > 0)
+    {
+        if ((key >= 32) && (key <= 125) && (chat->length < CHAT_MAX_TEXT - 1))
+        {
+            chat->text[chat->length++] = (char)key;
+            chat->text[chat->length] = '\0';
+        }
+        key = GetCharPressed();
+    }
+
+    // Fallback for keyboards that use key codes
+#if defined(PLATFORM_ANDROID)
+    int pKey = GetKeyPressed();
+    while (pKey > 0)
+    {
+        if(pKey != KEY_BACKSPACE && pKey != KEY_ENTER) {
+            char c = 0;
+            if (pKey >= KEY_A && pKey <= KEY_Z) c = (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) ? (pKey - KEY_A + 'A') : (pKey - KEY_A + 'a');
+            else if (pKey >= KEY_ZERO && pKey <= KEY_NINE) c = pKey - KEY_ZERO + '0';
+            else if (pKey == KEY_SPACE) c = ' ';
+
+            if (c != 0 && chat->length < CHAT_MAX_TEXT - 1)
+            {
+                chat->text[chat->length++] = c;
+                chat->text[chat->length] = '\0';
+            }
+        }
+        pKey = GetKeyPressed();
+    }
+#endif
 }
 
 void Chat_DrawUI(ChatState *chat)
 {
-    Rectangle inputBox, sendButton;
-    
-    int inputHeight = 44;
-    int padding = 10;
-    int sendWidth = 70;
-    int bottomY = chat->open ? (SCREEN_HEIGHT / 2 - inputHeight - padding) : (SCREEN_HEIGHT - inputHeight - padding);
-    
-    int availableWidth = SCREEN_WIDTH - (padding * 2);
-    int inputWidth = availableWidth - sendWidth - padding;
-    
-    inputBox = (Rectangle){(float)padding, (float)bottomY, (float)inputWidth, (float)inputHeight };
-    sendButton = (Rectangle){ inputBox.x + inputBox.width + padding, (float)bottomY, (float)sendWidth, (float)inputHeight };
+    UpdateChatLayout(chat); // Recalculate layout before drawing
     
     // Draw Input Box
-    DrawRectangleRec(inputBox, WHITE);
-    DrawRectangleLinesEx(inputBox, 2, BLACK);
-    DrawText(chat->text, (int)inputBox.x + 5, (int)inputBox.y + 12, 20, BLACK);
+    DrawRectangleRec(chat->inputBox, LIGHTGRAY);
+    DrawRectangleLinesEx(chat->inputBox, 2, chat->open ? BLACK : GRAY);
+    DrawText(chat->text, (int)chat->inputBox.x + 5, (int)chat->inputBox.y + 12, 20, BLACK);
     
     // Draw Send/Chat Button
     const char *buttonText = chat->open ? "SEND" : "CHAT";
     Color buttonColor = chat->open ? GREEN : DARKBLUE;
-    DrawRectangleRec(sendButton, buttonColor);
-    DrawRectangleLinesEx(sendButton, 2, BLACK);
-    DrawText(buttonText, (int)sendButton.x + 12, (int)sendButton.y + 14, 14, BLACK);
+    DrawRectangleRec(chat->sendButton, buttonColor);
+    DrawRectangleLinesEx(chat->sendButton, 2, BLACK);
+    DrawText(buttonText, (int)chat->sendButton.x + (chat->sendButton.width - MeasureText(buttonText, 14))/2, (int)chat->sendButton.y + 15, 14, WHITE);
 
     if (chat->open)
     {
-        // Character count above input
-        DrawText(TextFormat("%i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)inputBox.x, (int)inputBox.y - 12, 10, LIGHTGRAY);
+        // Draw Backspace Button
+        DrawRectangleRec(chat->backspaceButton, chat->backspacePressed ? MAROON : RED);
+        DrawRectangleLinesEx(chat->backspaceButton, 2, BLACK);
+        DrawText("<-", (int)chat->backspaceButton.x + 15, (int)chat->backspaceButton.y + 14, 14, WHITE);
 
-        // Draw blinking cursor
-        if (((int)(GetTime()*2.0f))%2 == 0)
+        DrawText(TextFormat("%i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)chat->inputBox.x, (int)chat->inputBox.y - 15, 10, DARKGRAY);
+
+        if (((int)(GetTime()*2.5f))%2 == 0)
         {
             int textWidth = MeasureText(chat->text, 20);
-            DrawRectangle((int)inputBox.x + 5 + textWidth, (int)inputBox.y + 12, 2, 20, BLACK);
+            DrawRectangle((int)chat->inputBox.x + 5 + textWidth, (int)chat->inputBox.y + 8, 2, 28, BLACK);
         }
     }
 }

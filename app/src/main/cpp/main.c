@@ -311,7 +311,7 @@ int main(void)
                 jumpsUsed++;
 
 #if defined(PLATFORM_ANDROID)
-                TriggerHapticFeedback(30);
+                TriggerHapticFeedback(50);
 #endif
             }
         }
