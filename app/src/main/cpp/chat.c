@@ -82,8 +82,25 @@ void Chat_Init(ChatState *chat)
 {
     memset(chat, 0, sizeof(ChatState));
 
+    // Chat open button top-left
     chat->button = (Rectangle){ 20, 20, 80, 48 };
-    chat->inputBox = (Rectangle){ 40, SCREEN_HEIGHT - 260, SCREEN_WIDTH - 80, 44 };
+    
+    // Input box centered at the bottom
+    int inputWidth = SCREEN_WIDTH - 120;
+    chat->inputBox = (Rectangle){ 
+        (SCREEN_WIDTH - inputWidth) / 2 - 30, // Shifted slightly left to make room for send button
+        SCREEN_HEIGHT - 350, // Move it up significantly to avoid keyboard overlap
+        inputWidth, 
+        44 
+    };
+
+    // Send button to the right of input box
+    chat->sendButton = (Rectangle){
+        chat->inputBox.x + chat->inputBox.width + 10,
+        chat->inputBox.y,
+        60,
+        44
+    };
 
     chat->open = false;
     chat->length = 0;
@@ -113,11 +130,35 @@ bool Chat_HandleTouch(ChatState *chat, Vector2 touch, int finger)
         return true; // Consumed touch
     }
 
-    if (chat->open && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(touch, chat->inputBox))
+    if (chat->open)
     {
-        ShowKeyboard(); 
-        chat->activeFinger = finger;
-        return true; // Consumed touch
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(touch, chat->inputBox))
+        {
+            ShowKeyboard(); 
+            chat->activeFinger = finger;
+            return true; // Consumed touch
+        }
+
+        // Handle Send Button
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(touch, chat->sendButton))
+        {
+            // Send message logic
+            if (chat->length > 0)
+            {
+                strcpy(chat->sentText, chat->text);
+                chat->sentLength = chat->length;
+                chat->bubbleTimer = 5.0f;
+                
+                // Clear input
+                chat->text[0] = '\0';
+                chat->length = 0;
+            }
+            
+            chat->open = false;
+            HideKeyboard();
+            chat->activeFinger = finger;
+            return true;
+        }
     }
     
     // If touch is released, reset the active finger
@@ -182,16 +223,16 @@ void Chat_Update(ChatState *chat, float dt)
         chat->text[chat->length] = '\0';
     }
 
+    // ENTER key removed as the primary send method, replaced by on-screen button.
+    // However, keeping it as an optional shortcut doesn't hurt.
     if (IsKeyPressed(KEY_ENTER))
     {
-        // Send message
         if (chat->length > 0)
         {
             strcpy(chat->sentText, chat->text);
             chat->sentLength = chat->length;
             chat->bubbleTimer = 5.0f;
             
-            // Clear input
             chat->text[0] = '\0';
             chat->length = 0;
         }
@@ -201,7 +242,6 @@ void Chat_Update(ChatState *chat, float dt)
         HideKeyboard();
     }
     
-    // Also update bubble timer if open (so it doesn't expire while typing if previously set)
     if (chat->bubbleTimer > 0.0f)
     {
         chat->bubbleTimer -= dt;
@@ -224,16 +264,24 @@ void Chat_DrawButton(ChatState *chat)
     
     if (chat->open)
     {
+        // Draw Input Box
         DrawRectangleRec(chat->inputBox, WHITE);
-        DrawRectangleLinesEx(chat->inputBox, 1, BLACK);
-        DrawText(chat->text, (int)chat->inputBox.x + 5, (int)chat->inputBox.y + 8, 20, BLACK);
-        DrawText(TextFormat("Chars: %i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)chat->inputBox.x, (int)chat->inputBox.y + 50, 10, DARKGRAY);
+        DrawRectangleLinesEx(chat->inputBox, 2, BLACK);
+        DrawText(chat->text, (int)chat->inputBox.x + 5, (int)chat->inputBox.y + 12, 20, BLACK);
+        
+        // Draw Send Button
+        DrawRectangleRec(chat->sendButton, GREEN);
+        DrawRectangleLinesEx(chat->sendButton, 2, BLACK);
+        DrawText("SEND", (int)chat->sendButton.x + 8, (int)chat->sendButton.y + 14, 14, BLACK);
+
+        // Character count below input
+        DrawText(TextFormat("%i/%i", chat->length, CHAT_MAX_TEXT - 1), (int)chat->inputBox.x, (int)chat->inputBox.y + 50, 10, LIGHTGRAY);
 
         // Draw blinking cursor
         if (((int)(GetTime()*2.0f))%2 == 0)
         {
             int textWidth = MeasureText(chat->text, 20);
-            DrawRectangle((int)chat->inputBox.x + 5 + textWidth, (int)chat->inputBox.y + 8, 2, 20, BLACK);
+            DrawRectangle((int)chat->inputBox.x + 5 + textWidth, (int)chat->inputBox.y + 12, 2, 20, BLACK);
         }
     }
 }

@@ -19,6 +19,7 @@ typedef struct ChatState {
     bool open;
     Rectangle button;
     Rectangle inputBox;
+    Rectangle sendButton; // New button to send the message
     
     char text[CHAT_MAX_TEXT];    // Current typing text
     int length;
