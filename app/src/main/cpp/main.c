@@ -261,6 +261,8 @@ int main(void)
     ChatState chat;
     Chat_Init(&chat);
 
+    float joyHapticCooldown = 0.0f;
+
     while (!WindowShouldClose())
     {
         float time = GetTime();
@@ -268,18 +270,18 @@ int main(void)
         float dt = GetFrameTime();
         Chat_Update(&chat, dt);
 
+        if (joyHapticCooldown > 0.0f) joyHapticCooldown -= dt;
+
         int touches = GetTouchPointCount();
         for (int i = 0; i < touches; i++)
         {
             Vector2 p = TouchToGame(GetTouchPosition(i));
 
-            // 1) Give chat FIRST chance to consume touch
             if (Chat_HandleTouch(&chat, p, i))
             {
-                continue; // chat used it, skip gameplay input
+                continue; 
             }
 
-            // 2) Gameplay input ONLY if chat didn't take it
             if (joy.finger == -1 &&
                 CheckCollisionPointCircle(p, joy.base, joy.radius))
             {
@@ -299,6 +301,13 @@ int main(void)
                 speed = fabsf(joy.delta.x);
                 player.x += joy.delta.x * speed * 5.5f;
                 facing.x = joy.delta.x >= 0 ? 1 : -1;
+
+                if (speed > 0.1f && joyHapticCooldown <= 0.0f) {
+                    #if defined(PLATFORM_ANDROID)
+                    TriggerHapticFeedback(40);
+                    #endif
+                    joyHapticCooldown = 1.0f;
+                }
             }
 
             if (jumpFinger == -1 &&
@@ -311,7 +320,7 @@ int main(void)
                 jumpsUsed++;
 
 #if defined(PLATFORM_ANDROID)
-                TriggerHapticFeedback(50);
+                TriggerHapticFeedback(30);
 #endif
             }
         }
