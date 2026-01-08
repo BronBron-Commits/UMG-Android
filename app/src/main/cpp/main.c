@@ -3,6 +3,13 @@
 #include "raymath.h"
 #include <math.h>
 
+#if defined(PLATFORM_ANDROID)
+#include <jni.h>
+#include <android/native_activity.h>
+// Use GetAndroidApp() from Raylib instead of declaring extern struct android_app *app;
+struct android_app *GetAndroidApp(void);
+#endif
+
 /* =============================
    CONFIG (PORTRAIT)
 ============================= */
@@ -17,6 +24,41 @@
 
 #define DAY_AMBIENT    0.40f
 #define NIGHT_AMBIENT  0.75f
+
+/* =============================
+   ANDROID HAPTIC FEEDBACK
+============================= */
+#if defined(PLATFORM_ANDROID)
+static void TriggerHapticFeedback(int durationMs)
+{
+    struct android_app *app = GetAndroidApp();
+    if (!app || !app->activity) return;
+
+    JNIEnv *env = NULL;
+    JavaVM *vm = app->activity->vm;
+    (*vm)->AttachCurrentThread(vm, &env, NULL);
+
+    jobject activity = app->activity->clazz;
+    jclass activityClass = (*env)->GetObjectClass(env, activity);
+
+    jmethodID getService = (*env)->GetMethodID(
+            env,
+            activityClass,
+            "getSystemService",
+            "(Ljava/lang/String;)Ljava/lang/Object;"
+    );
+
+    jstring vibStr = (*env)->NewStringUTF(env, "vibrator");
+    jobject vibrator = (*env)->CallObjectMethod(env, activity, getService, vibStr);
+
+    jclass vibClass = (*env)->GetObjectClass(env, vibrator);
+    jmethodID vibrate = (*env)->GetMethodID(env, vibClass, "vibrate", "(J)V");
+
+    (*env)->CallVoidMethod(env, vibrator, vibrate, (jlong)durationMs);
+
+    (*vm)->DetachCurrentThread(vm);
+}
+#endif
 
 /* =============================
    VIRTUAL JOYSTICK
@@ -244,6 +286,10 @@ int main(void)
                 velY = JUMP_VELOCITY;
                 grounded = false;
                 jumpsUsed++;
+
+#if defined(PLATFORM_ANDROID)
+                TriggerHapticFeedback(30);
+#endif
             }
         }
 
@@ -319,7 +365,6 @@ int main(void)
                 RAYWHITE
         );
 
-        /* ===== ONLY CHANGE: scale joystick visuals when active ===== */
         float joyScale = joy.active ? 2.0f : 1.0f;
 
         DrawCircleV(
@@ -333,7 +378,6 @@ int main(void)
                 25 * joyScale,
                 GRAY
         );
-        /* =========================================================== */
 
         EndTextureMode();
 
