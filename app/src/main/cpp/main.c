@@ -319,8 +319,21 @@ int main(void)
                 RAYWHITE
         );
 
-        DrawCircleV(joy.base, joy.radius, Fade(DARKGRAY,0.5f));
-        DrawCircleV(joy.knob, 25, GRAY);
+        /* ===== ONLY CHANGE: scale joystick visuals when active ===== */
+        float joyScale = joy.active ? 2.0f : 1.0f;
+
+        DrawCircleV(
+                joy.base,
+                joy.radius * joyScale,
+                Fade(DARKGRAY,0.5f)
+        );
+
+        DrawCircleV(
+                joy.knob,
+                25 * joyScale,
+                GRAY
+        );
+        /* =========================================================== */
 
         EndTextureMode();
 
